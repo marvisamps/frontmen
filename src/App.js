@@ -1,79 +1,112 @@
 import React, { Component } from 'react';
-
-const API = 'http://api.icndb.com/jokes/random/';
-const queryCounter = 10;
+import Timer from './Timer';
+import { URL_FETCH } from './constants'
 
 class App extends Component {
   state = {
     jokes: [],
-    isLoading: false,
+    isLoading: true,
     error: null,
     showList: false,
-    favorite: null,
+    favorites: [],
+    timer: false,
   };
 
   componentDidMount() {
-    this.setState({ isLoading: true });
-
-    fetch(API + queryCounter)
+    this.handleFetch()
       .then(response => {
-        if(response.ok){
-          return response.json();
-        } else {
-          alert("No data loaded!");
-        }
+        this.setState(() => ({ jokes: response.value, isLoading: false }))
       })
-      .then(data => this.setState({ jokes: data.value, isLoading: false }))
-      .catch(error => this.setState({ error, isLoading: false }))
+      .catch(error => ({ error, isLoading: false }))
   }
 
-  handleClick() {
-    this.setState(prevState => ({
-      showList: !prevState.showList
-    }));
+  handleFetch(limit = 10) {
+    const checkResponse = response => response.ok ? response.json() : alert("No data loaded!")
+
+    return fetch(`${URL_FETCH}${limit}`)
+      .then(checkResponse)
+      .then(data => ({ value: data.value, isLoading: false }))
   }
 
-  handleFavorite() {
-    this.setState(prevState => ({
-      favorite: !prevState.favorite
-    }));
+  handleFavorite(joke) {
+    return this.state.favorites.includes(joke)
+      ? this.setState(prevState => ({ favorites: prevState.favorites.filter(item => item !== joke) }))
+      : this.setState(prevState => ({ favorites: [...prevState.favorites, joke] }));
+  }
+
+  handleRandomFavorite() {
+    if (this.state.favorites.length < 10) {
+      this.handleFetch(1)
+        .then(response => this.setState(prevState => ({
+          jokes: [...prevState.jokes, response.value[0]],
+          favorites: [...this.state.favorites, response.value[0].id]
+        })))
+    }
+
+    console.log(this.state.favorites)
   }
 
   render() {
     const { jokes, isLoading, error } = this.state;
 
-    if(error){
+    if(error) {
       return <p>{error.message}</p>
     }
 
-    if(isLoading){
+    if(isLoading) {
       return <p>Loading...</p>
     }
 
     return (
       <div>
-        <button onClick={(e) => this.handleClick(e)}>
-          Show Jokes List
+        <button onClick={() => {
+          this.setState(prevState => ({ showList: !prevState.showList}))
+        }}>
+          {this.state.showList ? ('Simple Jokes List') : ('Favorite Jokes List')}
         </button>
+
+        {this.state.timer && <Timer doSomething={() => this.handleRandomFavorite()} time={3} />}
+
         {this.state.showList ? (
           <ul>
-            <h1>Simple List</h1>
+            <h1>Favorites List</h1>
+
+            <button onClick={() => {
+              this.setState((prevState) => ({ timer: !prevState.timer }))
+            }}>
+              {this.state.timer ? ('Stop Randomize') : ('Start Randomize')}
+            </button>
+
             {jokes.map(jokes =>
-              <li key={jokes.id}>
-                {this.state.favorite ? (
-                  <span>FAVORITE </span>
-                ) : (
-                  ''
+              <div key={jokes.id}>
+                {this.state.favorites.includes(jokes.id) && (
+                  <li>
+                    <span>FAVORITE </span>
+                    <span>{jokes.joke}</span>
+                    <button onClick={() => this.handleFavorite(jokes.id)}>
+                      Unmark as favorite
+                    </button>
+                  </li>
                 )}
-                <span>{jokes.joke}</span>
-                <button onClick={(e, key) => this.handleFavorite(e, key)}>
-                  Mark as favorite
-                </button>
-              </li>
+              </div>
             )}
           </ul>
         ) : (
-          <p>Click on the button to see the jokes!</p>
+          <ul>
+            <h1>Simple List</h1>
+            {jokes.map(jokes =>
+              <div key={jokes.id}>
+                {!this.state.favorites.includes(jokes.id) && (
+                  <li>
+                    <span>{jokes.joke}</span>
+                    <button onClick={() => this.handleFavorite(jokes.id)}>
+                      Mark as favorite
+                    </button>
+                  </li>
+                )}
+              </div>
+            )}
+          </ul>
         )}
       </div>
     );
