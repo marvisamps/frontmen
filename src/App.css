@@ -1,0 +1,25 @@
+button.markBtn {
+    position: relative;
+    top: -14px;
+    background-color: cadetblue;
+    border: 0;
+    color: white;
+    margin: 0 5px;
+}
+
+button.unmarkBtn {
+    position: relative;
+    top: -14px;
+    background-color: crimson;
+    border: 0;
+    color: white;
+    margin: 0 5px;
+}
+
+button.randomizeBtn {
+    float: left;
+    background-color: dodgerblue;
+    border: 0;
+    color: white;
+    margin: 22px 15px;
+}

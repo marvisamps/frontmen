@@ -1,14 +1,15 @@
 import React, { Component } from 'react';
-import './app.css';
+import './App.css';
 import Timer from './Timer';
 import { URL_FETCH } from './constants'
+import { save, get } from './database'
 
 class App extends Component {
   state = {
     jokes: [],
     isLoading: true,
     error: null,
-    favorites: [],
+    favorites: get('favorites'),
     timer: false,
   };
 
@@ -20,6 +21,11 @@ class App extends Component {
       .catch(error => ({ error, isLoading: false }))
   }
 
+  handleSave(state) {
+    this.setState(() => ({ ...state }));
+    save('favorites', state.favorites)
+  }
+
   handleFetch(limit = 10) {
     const checkResponse = response => response.ok ? response.json() : alert("No data loaded!");
 
@@ -29,26 +35,30 @@ class App extends Component {
   }
 
   handleFavorite(joke) {
+    const { jokes, favorites } = this.state;
+
     const getJoke = from => from.filter(item => item.id === joke).pop();
     const removeJoke = from => from.filter(item => item.id !== joke);
 
-    return this.state.favorites.filter(j => j.id === joke).length
-      ? this.setState(prevState => ({
-          jokes: [...prevState.jokes, getJoke(prevState.favorites)],
-          favorites: removeJoke(prevState.favorites),
-      }))
-      : this.setState(prevState => ({
-          jokes: removeJoke(prevState.jokes),
-          favorites: [...prevState.favorites, getJoke(prevState.jokes)]
-      }));
+    return favorites.filter(j => j.id === joke).length
+      ? this.handleSave({
+          jokes: [...jokes, getJoke(favorites)],
+          favorites: removeJoke(favorites),
+      })
+      : this.handleSave({
+          jokes: removeJoke(jokes),
+          favorites: [...favorites, getJoke(jokes)],
+      });
   }
 
   handleRandomFavorite() {
+    const { favorites } = this.state;
+
     if (this.state.favorites.length < 10) {
       this.handleFetch(1)
-        .then(response => this.setState(prevState => ({
-          favorites: [...prevState.favorites, response.value.pop() ],
-        })))
+        .then(response => this.handleSave({
+          favorites: [...favorites, response.value.pop() ],
+        }))
     }
   }
 

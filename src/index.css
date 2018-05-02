@@ -1,5 +1,53 @@
 body {
-  margin: 0;
-  padding: 0;
-  font-family: sans-serif;
+    margin: 0;
+    font-family: sans-serif;
+    font-size: 12px;
+}
+
+h1.favTitle {
+    float: left;
+}
+
+ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+ul.favList,
+ul.simpleList {
+    position: relative;
+    float: left;
+    width: 50vw;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+li span {
+    display: inline-flex;
+    position: relative;
+    top: -14px;
+    width: 70%;
+}
+
+li:before {
+    content: '';
+    display: inline-block;
+    background-size: 100%;
+    width: 40px;
+    height: 40px;
+    margin-right: 10px;
+}
+
+li.simpleItem:before {
+    background-image: url('./assets/images/norris-sad.png');
+}
+
+li.favItem:before {
+    background-image: url('./assets/images/norris-happy.png');
+}
+
+.favHeaderArea {
+    display: block;
+    width: 100%;
+    height: 70px;
 }
